@@ -15,6 +15,9 @@ class ViewController: UIViewController {
     var locationManager = CLLocationManager();
     
     var tappedLocations: [CLLocationCoordinate2D] = [];
+    var tappedLocationTitles: [String] = ["A", "B", "C"];
+    
+    var isPolygonAdded = false;
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,6 +25,8 @@ class ViewController: UIViewController {
         
         
         locationManager.delegate = self;
+        
+        mapView.delegate = self;
         
         if(CLLocationManager.locationServicesEnabled())
         {
@@ -32,6 +37,8 @@ class ViewController: UIViewController {
         mapView.addGestureRecognizer(tapGesture)
     }
     
+    
+    
     @objc func triggerTouchAction(gestureReconizer: UITapGestureRecognizer) {
           //Add alert to show it works
         if gestureReconizer.state == .ended {
@@ -39,11 +46,19 @@ class ViewController: UIViewController {
                 let touchLocation = gestureReconizer.location(in: mapView);
                 let coordinateOfTouch = mapView.convert(touchLocation, toCoordinateFrom: mapView);
                 
-                displayPointer(lat: coordinateOfTouch.latitude, lng: coordinateOfTouch.longitude, title: "Tap \(tappedLocations.count + 1)")
+                displayPointer(lat: coordinateOfTouch.latitude, lng: coordinateOfTouch.longitude, title: tappedLocationTitles[tappedLocations.count])
                 
                 tappedLocations.append(CLLocationCoordinate2D(latitude: coordinateOfTouch.latitude, longitude: coordinateOfTouch.longitude))
             }
             
+            if tappedLocations.count == 3 && isPolygonAdded == false {
+                let points = tappedLocations.map { point in
+                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                }
+                let overlay = MKPolygon(coordinates: points, count: points.count)
+                mapView.addOverlay(overlay)
+                isPolygonAdded = true;
+            }
         }
         
     }
@@ -88,4 +103,17 @@ extension ViewController: CLLocationManagerDelegate {
         }
     }
     
+}
+
+extension ViewController: MKMapViewDelegate {
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if overlay is MKPolygon {
+            let rendrer = MKPolygonRenderer(overlay: overlay)
+            rendrer.lineWidth = 1
+            rendrer.fillColor = UIColor.red.withAlphaComponent(0.5)
+            rendrer.strokeColor = UIColor.green
+            return rendrer
+        }
+        return MKOverlayRenderer()
+    }
 }
