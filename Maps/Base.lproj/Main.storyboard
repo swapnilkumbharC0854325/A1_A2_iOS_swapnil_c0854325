@@ -18,6 +18,10 @@
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="0dk-SA-wuD">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="zRU-3A-Erz" appends="YES" id="bwA-Dx-Gts"/>
+                                </connections>
                             </mapView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -29,8 +33,12 @@
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="0dk-SA-wuD" secondAttribute="trailing" id="rAV-0g-4ut"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="mapView" destination="0dk-SA-wuD" id="DQy-iz-IiE"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="zRU-3A-Erz"/>
             </objects>
             <point key="canvasLocation" x="30" y="70"/>
         </scene>
