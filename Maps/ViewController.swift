@@ -86,21 +86,46 @@ class ViewController: UIViewController {
                 }
                 let overlay = MKPolyline(coordinates: points, count: points.count)
                 mapView.addOverlay(overlay)
-            }
-            
-            if tappedLocations.count == 3 && isPolygonAdded == false {
-                let points = tappedLocations.map { point in
-                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                
+                
+                if tappedLocations.count == 3 && isPolygonAdded == false {
+                    let points = tappedLocations.map { point in
+                        return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                    }
+                    let overlay = MKPolygon(coordinates: points, count: points.count)
+                    mapView.addOverlay(overlay)
+                    let lastPoints: [CLLocationCoordinate2D] = [tappedLocations[2], tappedLocations[0]];
+                    let polylinePoints = lastPoints.map { point in
+                        return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                    }
+                    let polylineOverlay = MKPolyline(coordinates: polylinePoints, count: polylinePoints.count)
+                    mapView.addOverlay(polylineOverlay)
+                    isPolygonAdded = true;
                 }
-                let overlay = MKPolygon(coordinates: points, count: points.count)
-                mapView.addOverlay(overlay)
-                let lastPoints: [CLLocationCoordinate2D] = [tappedLocations[2], tappedLocations[0]];
-                let polylinePoints = lastPoints.map { point in
-                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+            } else {
+                let touchLocation = gestureReconizer.location(in: mapView);
+                let coordinateOfTouch = mapView.convert(touchLocation, toCoordinateFrom: mapView);
+                let newPin = CLLocation(latitude: coordinateOfTouch.latitude, longitude: coordinateOfTouch.longitude);
+                let distanceFromA = newPin.distance(from: CLLocation(latitude: tappedLocations[0].latitude, longitude: tappedLocations[0].longitude));
+                if ( distanceFromA < 100) {
+                    return;
                 }
-                let polylineOverlay = MKPolyline(coordinates: polylinePoints, count: polylinePoints.count)
-                mapView.addOverlay(polylineOverlay)
-                isPolygonAdded = true;
+                let distanceFromB = newPin.distance(from: CLLocation(latitude: tappedLocations[1].latitude, longitude: tappedLocations[1].longitude));
+                if ( distanceFromB < 100) {
+                    return;
+                }
+                let distanceFromC = newPin.distance(from: CLLocation(latitude: tappedLocations[2].latitude, longitude: tappedLocations[2].longitude));
+                if ( distanceFromC < 100) {
+                    return;
+                }
+                mapView.removeAnnotations(mapView.annotations)
+                mapView.removeOverlays(mapView.overlays)
+                tappedLocations.removeAll();
+                isPolygonAdded = false;
+                displayPointer(lat: myLocation?.coordinate.latitude ?? 0.0, lng: myLocation?.coordinate.longitude ?? 0.0, title: "My Location")
+                
+                displayPointer(lat: coordinateOfTouch.latitude, lng: coordinateOfTouch.longitude, title: tappedLocationTitles[tappedLocations.count])
+                tappedLocations.append(CLLocationCoordinate2D(latitude: coordinateOfTouch.latitude, longitude: coordinateOfTouch.longitude))
             }
         }
     }
@@ -139,7 +164,6 @@ class ViewController: UIViewController {
     ) {
         let annotation = MKPointAnnotation();
         annotation.title = title;
-        annotation.subtitle = "Long press to remove"
         annotation.coordinate = coordinate;
         mapView.addAnnotation(annotation);
     }
@@ -180,7 +204,7 @@ extension ViewController: MKMapViewDelegate {
         }
         if overlay is MKPolyline {
             let rendrer = MKPolylineRenderer(overlay: overlay)
-            rendrer.strokeColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1)
+            rendrer.strokeColor = UIColor.green
             rendrer.lineWidth = 3
             return rendrer
         }
