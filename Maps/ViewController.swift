@@ -42,7 +42,34 @@ class ViewController: UIViewController {
         mapView.addGestureRecognizer(longPressGesture)
     }
     
+    func naviagtePointOneToPointTwo(sourcePlaceMark: CLLocationCoordinate2D, destinationPlaceMark: CLLocationCoordinate2D) {
+        
+        let directionRequest = MKDirections.Request()
+        
+        directionRequest.source = MKMapItem(placemark: MKPlacemark(coordinate: sourcePlaceMark))
+        directionRequest.destination = MKMapItem(placemark: MKPlacemark(coordinate: destinationPlaceMark))
+        
+        directionRequest.transportType = .automobile
+        
+        let directions = MKDirections(request: directionRequest)
+        directions.calculate { (response, error) in
+            guard let directionResponse = response else {return}
+            let route = directionResponse.routes[0]
+            self.mapView.addOverlay(route.polyline, level: .aboveRoads)
+            let rect = route.polyline.boundingMapRect
+            self.mapView.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 100, left: 100, bottom: 100, right: 100), animated: true)
+        }
+    }
     
+    
+    @IBAction func navigate(_ sender: UIButton) {
+        if (tappedLocations.count == 3) {
+            mapView.removeOverlays(mapView.overlays);
+            naviagtePointOneToPointTwo(sourcePlaceMark: tappedLocations[0], destinationPlaceMark: tappedLocations[1])
+            naviagtePointOneToPointTwo(sourcePlaceMark: tappedLocations[1], destinationPlaceMark: tappedLocations[2])
+            naviagtePointOneToPointTwo(sourcePlaceMark: tappedLocations[2], destinationPlaceMark: tappedLocations[0])
+        }
+    }
     
     @objc func triggerTouchAction(gestureReconizer: UITapGestureRecognizer) {
         if gestureReconizer.state == .ended {
@@ -77,11 +104,10 @@ class ViewController: UIViewController {
             }
         }
     }
-
-    func displayPointer(
+    
+    func setRegion(
         lat: CLLocationDegrees,
-        lng: CLLocationDegrees,
-        title: String
+        lng: CLLocationDegrees
     ) {
         let latDelta: CLLocationDegrees = 0.5;
         let lngDelta: CLLocationDegrees = 0.5;
@@ -89,11 +115,21 @@ class ViewController: UIViewController {
         let span = MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lngDelta);
         
         let location = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-        
+         
         let region = MKCoordinateRegion(center: location, span: span)
         
         
         mapView.setRegion(region, animated: true)
+    }
+
+    func displayPointer(
+        lat: CLLocationDegrees,
+        lng: CLLocationDegrees,
+        title: String
+    ) {
+       
+        let location = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+        
         addAnnotation(coordinate: location, title: title)
     }
     
@@ -103,6 +139,7 @@ class ViewController: UIViewController {
     ) {
         let annotation = MKPointAnnotation();
         annotation.title = title;
+        annotation.subtitle = "Long press to remove"
         annotation.coordinate = coordinate;
         mapView.addAnnotation(annotation);
     }
@@ -122,6 +159,7 @@ extension ViewController: CLLocationManagerDelegate {
         if let location: CLLocation = locations.first {
             myLocation = CLLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
             displayPointer(lat: location.coordinate.latitude, lng: location.coordinate.longitude, title: "My Location")
+            setRegion(lat: location.coordinate.latitude, lng: location.coordinate.longitude);
         }
     }
     
@@ -142,8 +180,8 @@ extension ViewController: MKMapViewDelegate {
         }
         if overlay is MKPolyline {
             let rendrer = MKPolylineRenderer(overlay: overlay)
-            rendrer.strokeColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 0)
-            rendrer.lineWidth = 0
+            rendrer.strokeColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1)
+            rendrer.lineWidth = 3
             return rendrer
         }
         return MKOverlayRenderer()
@@ -166,9 +204,9 @@ extension ViewController: MKMapViewDelegate {
             return nil
         }
         let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "droppablePin")
-        annotationView.markerTintColor = UIColor.blue
+        annotationView.markerTintColor = #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)
         annotationView.canShowCallout = true
         annotationView.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
-        return nil
+        return annotationView
     }
 }
