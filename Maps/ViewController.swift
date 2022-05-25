@@ -25,14 +25,15 @@ class ViewController: UIViewController {
         locationManager.delegate = self;
         
         mapView.delegate = self;
+        mapView.isZoomEnabled = true;
     
-        mapView.showsUserLocation = true;
+        mapView.showsUserLocation = false;
         
         if(CLLocationManager.locationServicesEnabled())
         {
             locationManager.desiredAccuracy = kCLLocationAccuracyBest
             locationManager.requestWhenInUseAuthorization();
-            locationManager.startUpdatingLocation();
+            locationManager.requestLocation();
         }
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(triggerTouchAction))
         mapView.addGestureRecognizer(tapGesture)
@@ -52,6 +53,12 @@ class ViewController: UIViewController {
                 displayPointer(lat: coordinateOfTouch.latitude, lng: coordinateOfTouch.longitude, title: tappedLocationTitles[tappedLocations.count])
                 
                 tappedLocations.append(CLLocationCoordinate2D(latitude: coordinateOfTouch.latitude, longitude: coordinateOfTouch.longitude))
+                
+                let points = tappedLocations.map { point in
+                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                }
+                let overlay = MKPolyline(coordinates: points, count: points.count)
+                mapView.addOverlay(overlay)
             }
             
             if tappedLocations.count == 3 && isPolygonAdded == false {
@@ -60,9 +67,14 @@ class ViewController: UIViewController {
                 }
                 let overlay = MKPolygon(coordinates: points, count: points.count)
                 mapView.addOverlay(overlay)
+                let lastPoints: [CLLocationCoordinate2D] = [tappedLocations[2], tappedLocations[0]];
+                let polylinePoints = lastPoints.map { point in
+                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+                }
+                let ploylineOverlay = MKPolyline(coordinates: polylinePoints, count: polylinePoints.count)
+                mapView.addOverlay(ploylineOverlay)
                 isPolygonAdded = true;
             }
-            
         }
     }
 
@@ -82,9 +94,7 @@ class ViewController: UIViewController {
         
         
         mapView.setRegion(region, animated: true)
-        if (title != "My Location") {
-            addAnnotation(coordinate: location, title: title)
-        }
+        addAnnotation(coordinate: location, title: title)
     }
     
     func addAnnotation(
@@ -103,16 +113,21 @@ class ViewController: UIViewController {
         let distanceInKms = distanceInMeters / 1000;
         return String(format: "%.2f", distanceInKms)
     }
+    
 }
 
 
 extension ViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location: CLLocation = locations.last {
+        if let location: CLLocation = locations.first {
             myLocation = CLLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
             displayPointer(lat: location.coordinate.latitude, lng: location.coordinate.longitude, title: "My Location")
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Error")
     }
     
 }
@@ -124,6 +139,13 @@ extension ViewController: MKMapViewDelegate {
             rendrer.lineWidth = 1
             rendrer.fillColor = UIColor.red.withAlphaComponent(0.5)
             rendrer.strokeColor = UIColor.green
+            return rendrer
+        }
+        if overlay is MKPolyline {
+            let rendrer = MKPolylineRenderer(overlay: overlay)
+            rendrer.strokeColor = UIColor.blue
+            rendrer.lineWidth = 10
+            rendrer.polyline.title = "asvhxgasvx"
             return rendrer
         }
         return MKOverlayRenderer()
