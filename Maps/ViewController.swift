@@ -81,12 +81,12 @@ class ViewController: UIViewController {
                 
                 tappedLocations.append(CLLocationCoordinate2D(latitude: coordinateOfTouch.latitude, longitude: coordinateOfTouch.longitude))
                 
-                let points = tappedLocations.map { point in
-                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
-                }
-                let overlay = MKPolyline(coordinates: points, count: points.count)
-                mapView.addOverlay(overlay)
-                
+//                let points = tappedLocations.map { point in
+//                    return CLLocationCoordinate2DMake(point.latitude, point.longitude)
+//                }
+//                let overlay = MKPolyline(coordinates: points, count: points.count)
+//                mapView.addOverlay(overlay)
+//
                 
                 if tappedLocations.count == 3 && isPolygonAdded == false {
                     let points = tappedLocations.map { point in
@@ -228,7 +228,7 @@ extension ViewController: MKMapViewDelegate {
             return nil
         }
         let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "droppablePin")
-        annotationView.markerTintColor = #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)
+//        annotationView.markerTintColor = #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)
         annotationView.canShowCallout = true
         annotationView.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
         return annotationView
