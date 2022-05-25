@@ -71,8 +71,8 @@ class ViewController: UIViewController {
                 let polylinePoints = lastPoints.map { point in
                     return CLLocationCoordinate2DMake(point.latitude, point.longitude)
                 }
-                let ploylineOverlay = MKPolyline(coordinates: polylinePoints, count: polylinePoints.count)
-                mapView.addOverlay(ploylineOverlay)
+                let polylineOverlay = MKPolyline(coordinates: polylinePoints, count: polylinePoints.count)
+                mapView.addOverlay(polylineOverlay)
                 isPolygonAdded = true;
             }
         }
@@ -104,7 +104,6 @@ class ViewController: UIViewController {
         let annotation = MKPointAnnotation();
         annotation.title = title;
         annotation.coordinate = coordinate;
-        
         mapView.addAnnotation(annotation);
     }
     
@@ -143,9 +142,8 @@ extension ViewController: MKMapViewDelegate {
         }
         if overlay is MKPolyline {
             let rendrer = MKPolylineRenderer(overlay: overlay)
-            rendrer.strokeColor = UIColor.blue
-            rendrer.lineWidth = 10
-            rendrer.polyline.title = "asvhxgasvx"
+            rendrer.strokeColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 0)
+            rendrer.lineWidth = 0
             return rendrer
         }
         return MKOverlayRenderer()
@@ -167,10 +165,10 @@ extension ViewController: MKMapViewDelegate {
         if annotation is MKUserLocation {
             return nil
         }
-        let annotationView = MKPinAnnotationView()
-        annotationView.pinTintColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1);
+        let annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "droppablePin")
+        annotationView.markerTintColor = UIColor.blue
         annotationView.canShowCallout = true
         annotationView.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
-        return annotationView
+        return nil
     }
 }
